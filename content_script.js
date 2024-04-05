@@ -18,6 +18,7 @@ mkndiv.setAttribute('style',`
     max-width: 300px;
     min-height: 2em;
     width: 50px;
+    height: 3em;
     transition: width 1s;
 `);
 let mkndivclose = document.createElement('button');
@@ -61,9 +62,11 @@ if (document.location.host.endsWith('youtube.com')){
 
     mkndiv.addEventListener('mouseenter',(ev)=>{
         mkndiv.style.width = 'auto';
+        mkndiv.style.height = 'auto';
     });
     mkndiv.addEventListener('mouseleave',(ev)=>{
         mkndiv.style.width = '50px';
+        mkndiv.style.height = '2em';
     })
 
     function mkndiv_status_set(text){
