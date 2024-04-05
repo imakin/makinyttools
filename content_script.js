@@ -14,7 +14,7 @@ mkndiv.setAttribute('style',`
     padding:10px;
     background:rgba(255,255,255,0.5);
     border:solid 1px gray;
-    min-width: 30vw;
+    min-width: none;
     max-width: 300px;
     min-height: 2em;
 `);
@@ -69,7 +69,7 @@ if (document.location.host.endsWith('youtube.com')){
     }
     function mkn_skip(ev){
         try{
-            document.querySelector('.html5-main-video').currentTime = 60;
+            document.querySelector('.html5-main-video').currentTime = 260;
         }catch(e){
             mkndiv_status_set('trying to skip video failed');
         }
@@ -78,41 +78,56 @@ if (document.location.host.endsWith('youtube.com')){
     mknbt_fastforward.addEventListener('click',mkn_fastforward);
     mknbt_skip.addEventListener('click',mkn_skip);
 
+    window.check_iklan_sampling = 5;
     function check_iklan_step(){
-        try {
-            //
-            if (document.querySelector('.ytp-ad-preview-text')){
-                mkn_skip();
-                Array.prototype.forEach.call(document.querySelectorAll('.html5-main-video'),(el)=>{
-                    el.playbackRate = 6;
-                });
-                mkndiv_status_set('ads fast forwarded');
-            }
-        }catch(e){
-            console.log('trying to fast forward video failed');
+        window.check_iklan_sampling -= 1;
+        mkndiv_status_set(`check iklan in ${check_iklan_sampling} of ${interval_length}`);
+        if (window.check_iklan_sampling<1){
+            window.check_iklan_sampling = 5;
         }
-        var el = document.querySelector('#ytd-player .ytp-ad-skip-button-slot, .ytp-ad-overlay-close-button');
+        else {
+            return;
+        }
+        //~ try {
+            //~ //
+            //~ if (document.querySelector('.ytp-ad-preview-text')){
+                //~ mkn_skip();
+                //~ Array.prototype.forEach.call(document.querySelectorAll('.html5-main-video'),(el)=>{
+                    //~ el.playbackRate = 6;
+                //~ });
+                //~ mkndiv_status_set('ads fast forwarded');
+            //~ }
+        //~ }catch(e){
+            //~ console.log('trying to fast forward video failed');
+        //~ }
+        var elbt = document.querySelector('.ytp-ad-skip-button-modern');
+        if (elbt!==null){
+            elbt.click();
+            mkndiv_status_set('clicking modernbt. type:'+elbt.className+' bold');
+            return;
+        }
+        var el = document.querySelector('#ytd-player .ytp-ad-skip-button-slot, .ytp-ad-overlay-close-button, .ytp-ad-preview-container');
         if (el!==null) {
                 mkn_skip();
-                el.click();
+                //~ el.click();
                 mkndiv_status_set('clicking skip button. type:'+el.className+' bold');
         }
     }
-    window.interval_length = 500;
-    if (document.hidden){
-        window.interval_length = 2000;
-    }
+    window.interval_length = 200;
+    //~ if (document.hidden){
+        //~ window.interval_length = 1000;
+    //~ }
     window.check_iklan_interval = setInterval(check_iklan_step, window.interval_length);
-    function reduce_interval(){
-        clearInterval(window.check_iklan_interval);
-        window.check_iklan_interval = setInterval(check_iklan_step, 2000);
-    }
-    setTimeout(reduce_interval, 20000);
-    document.addEventListener("visibilitychange", ()=>{
-        if (document.hidden){
-            reduce_interval();
-        }
-    });
+    //~ function reduce_interval(){
+        //~ clearInterval(window.check_iklan_interval);
+        //~ window.check_iklan_interval = setInterval(check_iklan_step, 1000);
+    //~ }
+    //~ setTimeout(reduce_interval, 20000);
+    //~ document.addEventListener("visibilitychange", ()=>{
+        //~ if (document.hidden){
+            //~ reduce_interval();
+        //~ }
+    //~ });
 
 
 
@@ -205,6 +220,8 @@ if (document.location.host.endsWith('youtube.com')){
         font-size: 3em;
     `);
     blocking_div.innerText = "channel blocked";
+    
+    
     function channel_blacklist_check(){
         let current_channel = get_channel_name();
         let blacklist = channel_get_blacklist();
@@ -221,33 +238,62 @@ if (document.location.host.endsWith('youtube.com')){
     setInterval(channel_blacklist_check,1000);
     
     
-    //~ window.channel_black_list_interval = 0;
-    //~ function channel_black_list_routine(){
-        //~ let current_channel_el = document.querySelector('#primary #below #channel-name .ytd-channel-name');
-        //~ if (current_channel_el==null) return;
-        //~ let current_channel = current_channel_el.innerText;
-        
-        //~ let STORAGE_KEY = 'makinyoutubetools_chlist';
-        //~ let watchlist = localStorage.getItem(STORAGE_KEY);
-        //~ try {
-            //~ watchlist = JSON.parse(watchlist);
-            //~ if (watchlist==null) watchlist = [];
-        //~ } catch(e) {
-            //~ watchlist = [];
-        //~ }
-        //~ watchlist.push(current_channel);
-        //~ let watchlist_string = JSON.stringify(watchlist);
-        
-        //~ localStorage.setItem(STORAGE_KEY, watchlist_string);
-        //~ console.log(watchlist_string);
-        
-        //~ let watchlistdiv = document.createElement('div');
-        //~ watchlistdiv.innerText = watchlist_string;
-        //~ mkndiv.appendChild(watchlistdiv);
-        //~ clearInterval(channel_black_list_interval);
-    //~ }
-    //~ window.channel_black_list_interval = setInterval(channel_black_list_routine, 1000);
     
+    
+    //embed mode
+    const bt_embed_mode = create_get_element('makinyoutubetools_embedmode', 'button', mkndiv);
+    const embed_div = create_get_element('makinyoutubetools_embeddiv', 'div', document.body);
+    embed_div.setAttribute('style',blocking_div.getAttribute('style'));
+    
+    const KEY_EMBED = 'makinyoutubetools_embed_mode';
+    bt_embed_mode.innerText = 'activate Embed Mode';
+    if (localStorage.getItem(KEY_EMBED)==1){
+        bt_embed_mode.innerText = 'deactivate Embed Mode';
+    }
+    bt_embed_mode.addEventListener('click',(ev)=>{
+        if (bt_embed_mode.innerText=='activate Embed Mode'){
+            localStorage.setItem(KEY_EMBED, '1');
+            bt_embed_mode.innerText = 'deactivate Embed Mode';
+        } else {
+            localStorage.setItem(KEY_EMBED, '0');
+            bt_embed_mode.innerText = 'activate Embed Mode';
+        }
+    });
+    
+    function embed_mode_check(){
+        let active = localStorage.getItem(KEY_EMBED);
+        try{
+            let videoid = /(?:.+watch\?v=)(?<vid>.+)/g.exec(document.location.href)[1];
+        }
+        catch(e){
+            return;
+        }
+        let targetsrc = `https://www.youtube-nocookie.com/embed/${videoid}`;
+        if (active=='1'){
+            //~ if (embed_div.querySelector('iframe') && embed_div.querySelector('iframe').src==targetsrc){
+                //~ return;
+            //~ }
+            //~ embed_div.innerHTML = '';
+            //~ let iframe = document.createElement('iframe');
+            //~ iframe.setAttribute('src',targetsrc);
+            //~ embed_div.appendChild(iframe);
+            //~ embed_div.style.display = 'block';
+            let bt = document.querySelector('yt-sharing-embed-renderer');
+            if (bt && bt.checkVisibility()){
+                return;//already shown
+            }
+            document.querySelector('#actions button[aria-label="Share"]').click();
+            setTimeout(()=>{
+                document.querySelector('#share-targets button[title="Embed"]').click();
+            },1000);
+        }
+        else {
+            //~ embed_div.style.display = 'none';
+        }
+    }
+    if (localStorage.getItem(KEY_EMBED)=='1'){
+        setInterval(embed_mode_check, 2000);
+    }
 }
 
 function makeselector(el){
