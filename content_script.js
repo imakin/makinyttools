@@ -17,6 +17,8 @@ mkndiv.setAttribute('style',`
     min-width: none;
     max-width: 300px;
     min-height: 2em;
+    width: 50px;
+    transition: width 1s;
 `);
 let mkndivclose = document.createElement('button');
 mkndivclose.type = 'button';
@@ -45,6 +47,7 @@ if (document.location.host.endsWith('youtube.com')){
     var ytp_ad_module = null;
 
     let mkndiv_status = document.createElement('p');
+    mkndiv.style.overflow = 'hidden'
     mkndiv_status.id = "mkndiv_status"
     let mknbt_fastforward = document.createElement('button');
     mknbt_fastforward.setAttribute('type','button');
@@ -55,6 +58,13 @@ if (document.location.host.endsWith('youtube.com')){
     mkndiv.appendChild(mknbt_fastforward);
     mkndiv.appendChild(mknbt_skip);
     mkndiv.appendChild(mkndiv_status);
+
+    mkndiv.addEventListener('mouseenter',(ev)=>{
+        mkndiv.style.width = 'auto';
+    });
+    mkndiv.addEventListener('mouseleave',(ev)=>{
+        mkndiv.style.width = '50px';
+    })
 
     function mkndiv_status_set(text){
         mkndiv_status.innerHTML = text;
